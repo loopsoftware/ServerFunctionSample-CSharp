@@ -12,10 +12,29 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 
-namespace ServerFunctionSample
+namespace Fr.LoopSoftware.Sample.ServerFunction
 {
-    public static class Configuration
+    public static class AzureConfiguration
     {
+        /// <summary>Name of the Azure Active Directory instance.</summary>
+        public static readonly string AzureADInstance = System.Configuration.ConfigurationManager.AppSettings["ida:AADInstance"];
 
+        /// <summary>Name of the Azure AD tenant in which this application is registered.</summary>
+        public static readonly string TenantName = System.Configuration.ConfigurationManager.AppSettings["ida:Tenant"];
+
+        /// <summary>The application's redirect URI.</summary>
+        public static readonly string RedirectUri = System.Configuration.ConfigurationManager.AppSettings["ida:RedirectUri"];
+
+        /// <summary>Id of the client application registered with Azure AD.</summary>
+        public static readonly string ClientId = System.Configuration.ConfigurationManager.AppSettings["ida:ClientId"];
+
+        /// <summary>The application key is a credential used by the application to authenticate to Azure AD.</summary>
+        public static readonly string AppKey = System.Configuration.ConfigurationManager.AppSettings["ida:AppKey"];
+
+        /// <summary>The URI of the resource to access.</summary>
+        public static readonly string ResourceUri = System.Configuration.ConfigurationManager.AppSettings["ida:ResourceUri"];
+
+        /// <summary>URL of the authority issuing the access token.</summary>
+        public static readonly string Authority = string.Format("{0}/{1}", AzureADInstance, TenantName);
     }
 }
