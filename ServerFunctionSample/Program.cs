@@ -11,13 +11,15 @@
 //    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
-using System.Diagnostics;
 
 namespace Fr.LoopSoftware.Sample.ServerFunction
 {
     using System;
+    using System.Net.Http;
+    using System.Net.Http.Headers;
     using Microsoft.IdentityModel.Clients.ActiveDirectory;
-    using static AzureConfiguration;
+    using Newtonsoft.Json.Linq;
+    using static Configuration;
 
     class MainClass
     {
@@ -37,10 +39,10 @@ namespace Fr.LoopSoftware.Sample.ServerFunction
             int code = -1;
             try
             {
-                var context = new AuthenticationContext(Authority);
+                var context = new AuthenticationContext(AzureAuthorityUrl);
                 if (context != null)
                 {
-                    var credentials = new ClientCredential(ClientId, AppKey);
+                    var credentials = new ClientCredential(AzureClientId, AzureAppKey);
                     if (credentials != null)
                     {
                         var result = await context.AcquireTokenAsync(ResourceUri, credentials);
@@ -55,13 +57,41 @@ namespace Fr.LoopSoftware.Sample.ServerFunction
                             Console.Out.WriteLine(">>> Token: " + token);
                             Console.Out.WriteLine(">>> Expiration: " + expiration);
 
-                            // TODO: send token to Loop server...
+                            using (var httpClient = new HttpClient())
+                            {
+                                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(tokenType, token);
 
-                            // TODO: use received session to call server function REST API...
+                                // request an authenticated session from the Loop server...
+                                using (var loopAuthorisationResponse = await httpClient.GetAsync(new Uri(LoopAuthorisationUrl)))
+                                {
+                                    loopAuthorisationResponse.EnsureSuccessStatusCode();
 
-                            // TODO: show result of server function call... ??
+                                    // use received session to call server function REST API...
+                                    string sessionJson = await loopAuthorisationResponse.Content.ReadAsStringAsync();
 
-                            code = 0;
+                                    var jsonObject = JObject.Parse(sessionJson);
+
+                                    string sessionId = jsonObject.GetValue("sessionId").Value<string>();
+                                    string user = jsonObject.GetValue("user").Value<string>();
+
+                                    Console.Out.WriteLine(">>> Retrieved authorised session from Loop...");
+                                    Console.Out.WriteLine(">>> session: " + sessionId);
+                                    Console.Out.WriteLine(">>> user: " + user);
+
+                                    // TODO: show result of server function call... ??
+                                    using (var loopServerFunctionResponse = await httpClient.GetAsync(new Uri(LoopServerFunctionUrl)))
+                                    {
+                                        loopServerFunctionResponse.EnsureSuccessStatusCode();
+
+                                        string serverFunctionResult = await loopServerFunctionResponse.Content.ReadAsStringAsync();
+
+                                        Console.Out.WriteLine(">>> Server function result: " + serverFunctionResult);
+
+                                        code = 0;
+                                    }
+                                }
+
+                            }
                         }
                     }
                 }

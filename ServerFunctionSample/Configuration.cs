@@ -11,30 +11,36 @@
 //    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
+using System;
 
 namespace Fr.LoopSoftware.Sample.ServerFunction
 {
-    public static class AzureConfiguration
+    using static System.Configuration.ConfigurationManager;
+
+    public static class Configuration
     {
         /// <summary>Name of the Azure Active Directory instance.</summary>
-        public static readonly string AzureADInstance = System.Configuration.ConfigurationManager.AppSettings["ida:AADInstance"];
+        public static readonly string AzureADInstance = AppSettings["ida:AADInstance"];
 
         /// <summary>Name of the Azure AD tenant in which this application is registered.</summary>
-        public static readonly string TenantName = System.Configuration.ConfigurationManager.AppSettings["ida:Tenant"];
-
-        /// <summary>The application's redirect URI.</summary>
-        public static readonly string RedirectUri = System.Configuration.ConfigurationManager.AppSettings["ida:RedirectUri"];
+        public static readonly string AzureTenantName = AppSettings["ida:Tenant"];
 
         /// <summary>Id of the client application registered with Azure AD.</summary>
-        public static readonly string ClientId = System.Configuration.ConfigurationManager.AppSettings["ida:ClientId"];
+        public static readonly string AzureClientId = AppSettings["ida:ClientId"];
 
         /// <summary>The application key is a credential used by the application to authenticate to Azure AD.</summary>
-        public static readonly string AppKey = System.Configuration.ConfigurationManager.AppSettings["ida:AppKey"];
+        public static readonly string AzureAppKey = AppSettings["ida:AppKey"];
 
         /// <summary>The URI of the resource to access.</summary>
-        public static readonly string ResourceUri = System.Configuration.ConfigurationManager.AppSettings["ida:ResourceUri"];
+        public static readonly string ResourceUri = AppSettings["ida:ResourceUri"];
 
         /// <summary>URL of the authority issuing the access token.</summary>
-        public static readonly string Authority = string.Format("{0}/{1}", AzureADInstance, TenantName);
+        public static readonly string AzureAuthorityUrl = string.Format("{0}/{1}", AzureADInstance, AzureTenantName);
+
+        /// <summary>Loop session authorisation URL.</summary>
+        public static readonly string LoopAuthorisationUrl = AppSettings["loop:Authorisation"];
+
+        /// <summary>URL to invoke the Loop server function.</summary>
+        public static readonly string LoopServerFunctionUrl = AppSettings["loop:ServerFunction"];
     }
 }
