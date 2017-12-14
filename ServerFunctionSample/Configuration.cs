@@ -32,7 +32,10 @@ namespace Fr.LoopSoftware.Sample.ServerFunction
         public static readonly string AzureAppKey = AppSettings["ida:AppKey"];
 
         /// <summary>The URI of the resource to access.</summary>
-        public static readonly string ResourceUri = AppSettings["ida:ResourceUri"];
+        public static readonly string AzureResourceUri = AppSettings["ida:ResourceUri"];
+
+        /// <summary>The redirect URI of the Azure client application.</summary>
+        public static readonly string AzureRedirectUri = AppSettings["ida:RedirectUri"];
 
         /// <summary>URL of the authority issuing the access token.</summary>
         public static readonly string AzureAuthorityUrl = string.Format("{0}/{1}", AzureADInstance, AzureTenantName);
