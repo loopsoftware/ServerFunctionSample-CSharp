@@ -26,7 +26,9 @@ namespace Fr.LoopSoftware.Sample.ServerFunction
     {
         public static void Main(string[] args)
         {
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
             Run();
+#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 
             do
             {
