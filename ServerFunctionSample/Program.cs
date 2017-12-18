@@ -66,12 +66,14 @@ namespace Fr.LoopSoftware.Sample.ServerFunction
                         // set the authorisation header with the access token received above...
                         httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(tokenType, token);
 
-                        string version = await GetVersion(httpClient);
                         string sessionId = GetSessionId();
+                        string version = await GetVersion(httpClient);
 
                         httpClient.DefaultRequestHeaders.Add("Cookie", "sessionId=" + sessionId);
 
-                        string serverFunctionUrlWithVersion = string.Format(LoopServerFunctionUrl, version, sessionId);
+                        // replace the {0} and {1} templates in the server function url with the sessionId and version...
+                        string serverFunctionUrlWithVersion = string.Format(LoopServerFunctionUrl, sessionId, version);
+
                         using (var loopServerFunctionResponse = await httpClient.GetAsync(new Uri(LoopServerFunctionUrl)))
                         {
                             loopServerFunctionResponse.EnsureSuccessStatusCode();
