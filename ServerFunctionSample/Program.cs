@@ -110,9 +110,8 @@ namespace Fr.LoopSoftware.Sample.ServerFunction
                 loopVersionResponse.EnsureSuccessStatusCode();
 
                 var versionJson = JObject.Parse(await loopVersionResponse.Content.ReadAsStringAsync());
-
-                // TODO: get the version from the json...
-                string loopVersion = "";
+                // get the version from the json...
+                string loopVersion = Convert.ToString(versionJson["version"]);
 
                 return loopVersion;
             }
