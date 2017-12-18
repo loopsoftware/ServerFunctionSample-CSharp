@@ -11,7 +11,6 @@
 //    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
-using System;
 
 namespace Fr.LoopSoftware.Sample.ServerFunction
 {
@@ -40,10 +39,19 @@ namespace Fr.LoopSoftware.Sample.ServerFunction
         /// <summary>URL of the authority issuing the access token.</summary>
         public static readonly string AzureAuthorityUrl = string.Format("{0}/{1}", AzureADInstance, AzureTenantName);
 
-        /// <summary>Loop session authorisation URL.</summary>
-        public static readonly string LoopAuthorisationUrl = AppSettings["loop:Authorisation"];
+        /// <summary>URL to cal lto get the version of loop to use.</summary>
+        public static readonly string LoopVersionUrl = AppSettings["loop:VersionUrl"];
+
+        /// <summary>The ID of the session to use.</summary>
+        public static readonly string LoopSessionId = AppSettings["loop:SessionId"];
 
         /// <summary>URL to invoke the Loop server function.</summary>
         public static readonly string LoopServerFunctionUrl = AppSettings["loop:ServerFunction"];
+
+        /// <summary>Username to login to Azure: UPN format (i.e., user email).</summary>
+        public static readonly string LoopUsername = AppSettings["loop:Username"];
+
+        /// <summary>Password for the user to login to Azure.</summary>
+        public static readonly string LoopPassword = AppSettings["loop:Password"];
     }
 }

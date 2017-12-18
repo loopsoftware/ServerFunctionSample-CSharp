@@ -17,6 +17,7 @@ namespace Fr.LoopSoftware.Sample.ServerFunction
     using System;
     using System.Net.Http;
     using System.Net.Http.Headers;
+    using System.Threading.Tasks;
     using Microsoft.IdentityModel.Clients.ActiveDirectory;
     using Newtonsoft.Json.Linq;
     using static Configuration;
@@ -34,15 +35,18 @@ namespace Fr.LoopSoftware.Sample.ServerFunction
             while (Console.ReadKey().Key != ConsoleKey.Q);
         }
 
-        private static async void Run()
+        private static async Task Run()
         {
             int code = -1;
             try
             {
                 var context = new AuthenticationContext(AzureAuthorityUrl);
 
-                var result = await context.AcquireTokenAsync(AzureResourceUri, AzureClientId, new Uri(AzureRedirectUri), new PlatformParameters(PromptBehavior.Auto));
+                // generate an credential to user for authentication with azure when asking for an access token...
+                var credential = new UserPasswordCredential(LoopUsername, LoopPassword);
 
+                // request an access token from azure...
+                var result = await context.AcquireTokenAsync(AzureResourceUri, AzureClientId, credential);
                 if (result != null)
                 {
                     string token = result.AccessToken;
@@ -54,40 +58,28 @@ namespace Fr.LoopSoftware.Sample.ServerFunction
                     Console.Out.WriteLine(">>> Token: " + token);
                     Console.Out.WriteLine(">>> Expiration: " + expiration);
 
+                    // create an http client...
                     using (var httpClient = new HttpClient())
                     {
+                        // set the authorisation header with the access token received above...
                         httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(tokenType, token);
 
-                        // request an authenticated session from the Loop server...
-                        using (var loopAuthorisationResponse = await httpClient.GetAsync(new Uri(LoopAuthorisationUrl)))
+                        string version = await GetVersion(httpClient);
+                        string sessionId = GetSessionId();
+
+                        httpClient.DefaultRequestHeaders.Add("Cookie", "sessionId=" + sessionId);
+
+                        string serverFunctionUrlWithVersion = string.Format(LoopServerFunctionUrl, version, sessionId);
+                        using (var loopServerFunctionResponse = await httpClient.GetAsync(new Uri(LoopServerFunctionUrl)))
                         {
-                            loopAuthorisationResponse.EnsureSuccessStatusCode();
+                            loopServerFunctionResponse.EnsureSuccessStatusCode();
 
-                            // use received session to call server function REST API...
-                            string sessionJson = await loopAuthorisationResponse.Content.ReadAsStringAsync();
+                            var resultJson = JObject.Parse(await loopServerFunctionResponse.Content.ReadAsStringAsync());
 
-                            var jsonObject = JObject.Parse(sessionJson);
+                            // TODO: do something with the result...
 
-                            string sessionId = jsonObject.GetValue("sessionId").Value<string>();
-                            string user = jsonObject.GetValue("user").Value<string>();
-
-                            Console.Out.WriteLine(">>> Retrieved authorised session from Loop...");
-                            Console.Out.WriteLine(">>> session: " + sessionId);
-                            Console.Out.WriteLine(">>> user: " + user);
-
-                            // TODO: show result of server function call... ??
-                            using (var loopServerFunctionResponse = await httpClient.GetAsync(new Uri(LoopServerFunctionUrl)))
-                            {
-                                loopServerFunctionResponse.EnsureSuccessStatusCode();
-
-                                string serverFunctionResult = await loopServerFunctionResponse.Content.ReadAsStringAsync();
-
-                                Console.Out.WriteLine(">>> Server function result: " + serverFunctionResult);
-
-                                code = 0;
-                            }
+                            code = 0;
                         }
-
                     }
                 }
             }
@@ -107,6 +99,26 @@ namespace Fr.LoopSoftware.Sample.ServerFunction
             }
 
             Environment.Exit(code);
+        }
+
+        private static async Task<string> GetVersion(HttpClient httpClient)
+        {
+            using (var loopVersionResponse = await httpClient.GetAsync(new Uri(LoopVersionUrl)))
+            {
+                loopVersionResponse.EnsureSuccessStatusCode();
+
+                var versionJson = JObject.Parse(await loopVersionResponse.Content.ReadAsStringAsync());
+
+                // TODO: get the version from the json...
+                string loopVersion = "";
+
+                return loopVersion;
+            }
+        }
+
+        private static string GetSessionId()
+        {
+            return "";
         }
     }
 }
