@@ -55,30 +55,36 @@ namespace Fr.LoopSoftware.Sample.ServerFunction
                     string tokenType = result.AccessTokenType;
                     string expiration = result.ExpiresOn.ToString();
 
-                    Console.Out.WriteLine(">>> Authenticated successfully...");
-                    Console.Out.WriteLine(">>> Token type: " + tokenType);
-                    Console.Out.WriteLine(">>> Token: " + token);
-                    Console.Out.WriteLine(">>> Expiration: " + expiration);
+                    // uncommend to see the token information...
+                    // Console.Out.WriteLine(">>> Authenticated successfully...");
+                    // Console.Out.WriteLine(">>> Token type: " + tokenType);
+                    // Console.Out.WriteLine(">>> Token: " + token);
+                    // Console.Out.WriteLine(">>> Expiration: " + expiration);
 
                     // create an http client...
                     using (var httpClient = new HttpClient())
                     {
                         // set the authorisation header with the access token received above...
                         httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(tokenType, token);
+                        // set the cookie with the session id...
+                        httpClient.DefaultRequestHeaders.Add("Cookie", "sessionId=" + LoopSessionId);
 
-                        string sessionId = GetSessionId();
                         string version = await GetVersion(httpClient);
 
-                        httpClient.DefaultRequestHeaders.Add("Cookie", "sessionId=" + sessionId);
+                        // replace the {0} template in the server function url string with the version...
+                        string serverFunctionUrlWithVersion = string.Format(LoopServerFunctionUrl, version);
 
-                        // replace the {0} and {1} templates in the server function url with the sessionId and version...
-                        string serverFunctionUrlWithVersion = string.Format(LoopServerFunctionUrl, sessionId, version);
-
-                        using (var loopServerFunctionResponse = await httpClient.GetAsync(new Uri(LoopServerFunctionUrl)))
+                        // make the http request to the server function url...
+                        using (var loopServerFunctionResponse = await httpClient.GetAsync(new Uri(serverFunctionUrlWithVersion)))
                         {
                             loopServerFunctionResponse.EnsureSuccessStatusCode();
 
-                            var resultJson = JObject.Parse(await loopServerFunctionResponse.Content.ReadAsStringAsync());
+                            // get the response content as a string...
+                            string response = await loopServerFunctionResponse.Content.ReadAsStringAsync();
+
+                            // parse the response to json (must be valid json!)...
+                            var json = JObject.Parse(response);
+                            // properties on the json object are accessed as: json["propertyName"]
 
                             // TODO: do something with the result...
 
@@ -107,21 +113,20 @@ namespace Fr.LoopSoftware.Sample.ServerFunction
 
         private static async Task<string> GetVersion(HttpClient httpClient)
         {
+            // call the loop version url...
             using (var loopVersionResponse = await httpClient.GetAsync(new Uri(LoopVersionUrl)))
             {
                 loopVersionResponse.EnsureSuccessStatusCode();
 
+                // get the response content as a string and parse it to json...
                 var versionJson = JObject.Parse(await loopVersionResponse.Content.ReadAsStringAsync());
                 // get the version from the json...
                 string loopVersion = Convert.ToString(versionJson["version"]);
 
+                Console.Out.WriteLine(">>> Version: " + loopVersion);
+
                 return loopVersion;
             }
-        }
-
-        private static string GetSessionId()
-        {
-            return "";
         }
     }
 }
